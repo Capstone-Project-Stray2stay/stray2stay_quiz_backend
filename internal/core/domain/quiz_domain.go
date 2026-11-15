@@ -25,10 +25,11 @@ type BreedDoc struct {
 // QuizQuestion is the payload encoded into the signed question token and
 // returned (minus the answer) to the client.
 type QuizQuestion struct {
-	PetType   string `json:"petType"`
-	BreedName string `json:"-"`
-	ImageURL  string `json:"imageUrl"`
-	IssuedAt  int64  `json:"-"`
+	PetType   string   `json:"petType"`
+	BreedName string   `json:"-"`
+	ImageURL  string   `json:"imageUrl"`
+	Options   []string `json:"options"`
+	IssuedAt  int64    `json:"-"`
 }
 
 type QuizAnswerResult struct {

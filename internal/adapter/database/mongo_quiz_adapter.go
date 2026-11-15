@@ -78,3 +78,40 @@ func (m *MongoQuizAdapter) RandomBreedWithImage(petType string) (string, string,
 
 	return breed.BreedName, pick.Image, nil
 }
+
+// RandomDistractorBreedNames samples up to count breed names from the
+// catBreeds/dogBreeds collection for petType, excluding excludeBreed, to use
+// as wrong multiple-choice options alongside the correct breed.
+func (m *MongoQuizAdapter) RandomDistractorBreedNames(petType string, excludeBreed string, count int) ([]string, error) {
+	collectionName, err := collectionForPetType(petType)
+	if err != nil {
+		return nil, err
+	}
+
+	collection := m.db.Collection(collectionName)
+
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{"breedName": bson.M{"$ne": excludeBreed}}}},
+		{{Key: "$sample", Value: bson.M{"size": count}}},
+		{{Key: "$project", Value: bson.M{"breedName": 1, "_id": 0}}},
+	}
+
+	ctx := context.Background()
+	cursor, err := collection.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var docs []domain.BreedDoc
+	if err := cursor.All(ctx, &docs); err != nil {
+		return nil, err
+	}
+
+	names := make([]string, 0, len(docs))
+	for _, doc := range docs {
+		names = append(names, doc.BreedName)
+	}
+
+	return names, nil
+}

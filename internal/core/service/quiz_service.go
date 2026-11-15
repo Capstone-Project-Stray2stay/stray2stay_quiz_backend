@@ -1,12 +1,17 @@
 package service
 
 import (
+	"math/rand"
 	"strings"
 	"time"
 
 	"github.com/S-nudhana/stray2stay-quiz-backend/internal/core/domain"
 	"github.com/S-nudhana/stray2stay-quiz-backend/internal/core/port"
 )
+
+// distractorCount is how many wrong breed names are sampled alongside the
+// correct one, so each question offers 4 options in total.
+const distractorCount = 3
 
 type quizService struct {
 	repo   port.QuizMongoRepository
@@ -33,6 +38,14 @@ func (s *quizService) NewQuestion(petType string) (string, domain.QuizQuestion, 
 		return "", domain.QuizQuestion{}, err
 	}
 
+	distractors, err := s.repo.RandomDistractorBreedNames(normalized, breedName, distractorCount)
+	if err != nil {
+		return "", domain.QuizQuestion{}, err
+	}
+
+	options := append([]string{breedName}, distractors...)
+	rand.Shuffle(len(options), func(i, j int) { options[i], options[j] = options[j], options[i] })
+
 	now := time.Now().Unix()
 	token, err := s.signer.sign(tokenPayload{
 		PetType:   normalized,
@@ -47,6 +60,7 @@ func (s *quizService) NewQuestion(petType string) (string, domain.QuizQuestion, 
 	question := domain.QuizQuestion{
 		PetType:  normalized,
 		ImageURL: imageURL,
+		Options:  options,
 		IssuedAt: now,
 	}
 

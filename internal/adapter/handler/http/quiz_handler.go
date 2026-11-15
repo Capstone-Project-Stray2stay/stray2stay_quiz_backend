@@ -34,6 +34,7 @@ func (h *QuizHandler) GetQuestion(c *fiber.Ctx) error {
 		"token":    token,
 		"petType":  question.PetType,
 		"imageUrl": question.ImageURL,
+		"options":  question.Options,
 		"message":  "Get quiz question successfully",
 	})
 }

@@ -6,6 +6,7 @@ import "github.com/S-nudhana/stray2stay-quiz-backend/internal/core/domain"
 // stray2stay MongoDB (catBreeds/dogBreeds collections).
 type QuizMongoRepository interface {
 	RandomBreedWithImage(petType string) (breedName string, imageURL string, err error)
+	RandomDistractorBreedNames(petType string, excludeBreed string, count int) (breedNames []string, err error)
 }
 
 type QuizService interface {
